@@ -10,22 +10,24 @@ namespace SnakeASCII.GameLogic
 {
     public class GameEngine
     {
-        public enum Direction { Up, Down, Left, Right }
+        public enum Direction { Up, Down, Left, Right, Zero }
 
-        public void UpdateGamePanel((int x, int y) gameWindow, int playerPoints, Snake snake, List<Fruits> fruits, int playerMoves, bool playerMoved)
+        public void UpdateGamePanel((int x, int y) gameWindow, int playerPoints, Snake snake, List<Fruits> fruits, int playerMoves, bool playerMoved, ref int sameDirectionCount)
         {
             int frameStartWidth = gameWindow.x / 5;
+            int frameEndWidth = (gameWindow.x / 2) + (gameWindow.x / 5);
             Console.SetCursorPosition(frameStartWidth + 1, gameWindow.y + 2);
-            Console.WriteLine($"Player points: {playerPoints}, Fruits: {fruits.Count}");
+            Console.Write($"Player points: {playerPoints}, Fruits: {fruits.Count}");
             Console.SetCursorPosition(frameStartWidth + 1, gameWindow.y + 3);
-            Console.WriteLine($"Player positionX: {snake.Segments[0].x}, positionY: {snake.Segments[0].y}");
+            Console.Write($"Player positionX: {snake.Segments[0].x}, positionY: {snake.Segments[0].y}");
             Console.SetCursorPosition(frameStartWidth + 1, gameWindow.y + 4);
-            Console.WriteLine($"moves left for fruit to spawn: {playerMoves}");
+            Console.Write($"moves left for fruit to spawn: {playerMoves}".PadRight(frameEndWidth - frameStartWidth - 1));
+            Console.WriteLine(sameDirectionCount);
             playerMoved = false;
-            GameOver(snake, gameWindow);
+            GameOver(snake, gameWindow, ref sameDirectionCount);
             Console.SetCursorPosition(snake.Segments[0].x, snake.Segments[0].y);
         }
-        public int Move(List<Fruits>fruits,Snake snake, Direction dir,ref int playerMoves)
+        /* public int Move(List<Fruits>fruits,Snake snake, Direction dir,ref int playerMoves)
         {
             var head = snake.Segments[0];
             Direction currentDirection = dir;
@@ -52,12 +54,11 @@ namespace SnakeASCII.GameLogic
         }
         public Snake PlayerMove(Snake snake, List<Fruits> fruits, int playerPoints,ref int playerMoves,(int x, int y) gameWindow)
         {
+            bool playerMoved = false;
             Direction currentDirection = new Direction();
             if (Console.KeyAvailable)
             {
                 var head = snake.Segments[0];
-                bool playerMoved = false;
-
                 var key = Console.ReadKey(true);
                 if (key.Key == ConsoleKey.UpArrow)
                 {
@@ -83,10 +84,96 @@ namespace SnakeASCII.GameLogic
                 {
                     RemoveSnake(snake, gameWindow);
                     Move(fruits, snake, currentDirection,ref playerMoves);
-                    UpdateGamePanel(gameWindow,playerPoints,snake,fruits,playerMoves,playerMoved);
                     DrawSnake(snake, gameWindow);
                 }
             }
+            UpdateGamePanel(gameWindow, playerPoints, snake, fruits, playerMoves, playerMoved);
+            return snake;
+        } */
+        public int Move(List<Fruits>fruits,Snake snake, Direction dir,ref int playerMoves)
+        {
+            var head = snake.Segments[0];
+            Direction currentDirection = dir;
+            (int dx, int dy) = currentDirection switch
+            {
+                Direction.Up => (0, -1),
+                Direction.Down => (0, 1),
+                Direction.Left => (-1, 0),
+                Direction.Right => (1, 0),
+                Direction.Zero => (0, 0),
+                _ => (0, 0)
+            };
+            snake.Segments.Insert(0, (head.x + dx, head.y + dy));
+            var ateFruit = fruits.Any(f => f.Positions == snake.Segments[0]);
+            if (!ateFruit)
+            {
+                snake.Segments.Remove(snake.Segments.Last());
+            }
+            else
+            {
+                snake.SnakeLength = snake.Segments.Count;
+                fruits.RemoveAll(s=>s.Positions ==snake.Segments[0]);
+            }
+            return playerMoves--;
+        }
+        public void SnakeSpeed(int sameDirectionCount)
+        {
+            int minDelay = 20;
+            int maxDelay = 300;
+            var frameDelayMs = int.Max(minDelay, maxDelay - (sameDirectionCount * 5));
+            Thread.Sleep(frameDelayMs);
+        }
+        public Snake PlayerMove(Snake snake, List<Fruits> fruits, int playerPoints,ref int playerMoves,(int x, int y) gameWindow,ref Direction LastDirection, ref int sameDirectionCount)
+        {
+            bool playerMoved = false;
+            Direction currentDirection = LastDirection;
+            if (Console.KeyAvailable)
+            {
+                var key = Console.ReadKey(true);
+                if (key.Key == ConsoleKey.UpArrow && LastDirection != Direction.Down)
+                {
+                    playerMoved = true;
+                    currentDirection = Direction.Up;
+                }
+                else if (key.Key == ConsoleKey.DownArrow && LastDirection != Direction.Up)
+                {
+                    playerMoved = true;
+                    currentDirection = Direction.Down;
+                }
+                else if (key.Key == ConsoleKey.LeftArrow && LastDirection != Direction.Right)
+                {
+                    playerMoved = true;
+                    currentDirection = Direction.Left;
+                }
+                else if (key.Key == ConsoleKey.RightArrow && LastDirection != Direction.Left)
+                {
+                    playerMoved = true;
+                    currentDirection = Direction.Right;
+                }
+
+            }
+            if (currentDirection == LastDirection)
+            {
+                sameDirectionCount++;
+            }
+            else
+            {
+                sameDirectionCount = 0;
+            }
+            if (playerMoved)
+            {
+                RemoveSnake(snake, gameWindow);
+                Move(fruits, snake, currentDirection, ref playerMoves);
+                DrawSnake(snake, gameWindow);
+            }
+            else
+            {
+                RemoveSnake(snake, gameWindow);
+                Move(fruits, snake, LastDirection, ref playerMoves);
+                DrawSnake(snake, gameWindow);
+            }
+            LastDirection = currentDirection;
+            UpdateGamePanel(gameWindow, playerPoints, snake, fruits, playerMoves, playerMoved,ref sameDirectionCount);
             return snake;
         }
         public void RemoveSnake(Snake snake, (int x, int y) gameWindow)
@@ -107,7 +194,7 @@ namespace SnakeASCII.GameLogic
             }
             Console.SetCursorPosition(snake.Segments[0].x, snake.Segments[0].y);
         }
-        public void GameOver(Snake snake, (int x, int y) gameWindow)
+        public void GameOver(Snake snake, (int x, int y) gameWindow, ref int sameDirectionCount)
         {
             if (snake.Segments[0].x < 2 || snake.Segments[0].y < 2 || snake.Segments[0].x >= gameWindow.x || snake.Segments[0].y >= gameWindow.y)
             {
@@ -122,6 +209,7 @@ namespace SnakeASCII.GameLogic
                 snake.Segments.Clear();
                 snake.Segments.Insert(0, (gameWindow.x / 2, gameWindow.y / 2));
             }
+            sameDirectionCount = 0;
         }
         public List<Fruits> DrawFruits(Snake snake,List<Fruits> fruits, (int windowWidth, int windowHeight) gameWindow,Random rng)
         {

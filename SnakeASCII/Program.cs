@@ -1,5 +1,6 @@
 ﻿using SnakeASCII.GameLogic;
 using SnakeASCII.objects;
+using static SnakeASCII.GameLogic.GameEngine;
 internal class Program
 {
     private static void Main()
@@ -16,12 +17,15 @@ internal class Program
         var head = snake.Segments[0];
         var rng = new Random();
         var fruits = new List<Fruits>();
+        Direction LastDirection = new Direction();
+        LastDirection = Direction.Zero;
+        int sameDirectionCount= 0;
 
         engine.DrawField(gameWindow);
         engine.DrawSnake(snake,gameWindow);
         while (true)
         {
-            engine.PlayerMove(snake, fruits, playerPoints,ref playerMoves, gameWindow);
+            engine.PlayerMove(snake, fruits, playerPoints,ref playerMoves, gameWindow,ref LastDirection,ref sameDirectionCount);
             if (playerMoves <= 0)
             {
                 engine.DrawFruits(snake,fruits, gameWindow,rng);
@@ -33,7 +37,7 @@ internal class Program
                 snake.SnakeLength++;
                 fruits.Remove(fruit);
             }
-            Thread.Sleep(20);
+            engine.SnakeSpeed(sameDirectionCount);
         }
     }
 }

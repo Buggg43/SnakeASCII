@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SnakeASCII.objects
+namespace SnakeASCII.Models
 {
     public class Snake
     {

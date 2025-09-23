@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SnakeASCII.objects
+namespace SnakeASCII.Models
 {
-    public class Fruits
+    public class Fruit
     {
         public static int FruitId { get; set; }
         public string Name { get; set; } = $"Fruit {FruitId}";

@@ -11,7 +11,7 @@ internal class Program
         Console.Clear();
 
         Direction lastDirection = Direction.Right;
-        int sameDirectionCount = 0, movesForFruit = 10, playerPoints = 0, snakeSpeed;
+        int sameDirectionCount = 0, movesForFruit = 0, playerPoints = 0, snakeSpeed;
         SnakeServiceDto snakeMove;
         Input input = new Input();
         Board board = new Board();
@@ -28,6 +28,7 @@ internal class Program
 
         renderer.DrawField((board.GameWindowWidth, board.GameWindowHeight));
         renderer.UpdateGamePanel((board.GameWindowWidth, board.GameWindowHeight), playerPoints, snake.SnakeLength, movesForFruit, sameDirectionCount, snake.Segments[0]);
+        renderer.DrawSnakeFull(snake);
         while (true)
         {
             var current = lastDirection;
@@ -45,9 +46,8 @@ internal class Program
                 renderer.ShowGameOver((board.GameWindowWidth, board.GameWindowHeight));
                 Console.Clear();
                 renderer.DrawField((board.GameWindowWidth, board.GameWindowHeight));
-                restartGame.restart(ref playerPoints, ref movesForFruit, ref sameDirectionCount, ref lastDirection, ref snake, snakeStartingPosition);
-                renderer.DrawSnake(new SnakeServiceDto { NewHead = snakeStartingPosition });
-                fruits.Clear();
+                restartGame.Restart(ref playerPoints, ref movesForFruit, ref sameDirectionCount, ref lastDirection, ref snake, snakeStartingPosition, ref fruits);
+                renderer.DrawSnakeFull(snake);
                 renderer.UpdateGamePanel((board.GameWindowWidth, board.GameWindowHeight), playerPoints, snake.SnakeLength, movesForFruit, sameDirectionCount, snake.Segments[0]);
                 continue;
             }
@@ -60,7 +60,7 @@ internal class Program
                     movesForFruit = 10;
                 }
                 else if (fruits.Count < 1)
-                    movesForFruit--;
+                    movesForFruit = Math.Max(0, movesForFruit - 1);
             }
             if (movesForFruit == 0 && fruits.Count < 1)
             {

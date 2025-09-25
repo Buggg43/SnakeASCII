@@ -37,6 +37,16 @@ namespace SnakeASCII.GameLogic
             }
                 //Console.SetCursorPosition(dto.NewHead.x, dto.NewHead.y);
         }
+        public void DrawSnakeFull(Snake snake)
+        {
+            Console.SetCursorPosition(snake.Segments[0].x, snake.Segments[0].y);
+            Console.Write("@");
+            for(int i=1; i < snake.Segments.Count -1; i++)
+            {
+                Console.SetCursorPosition(snake.Segments[i].x, snake.Segments[i].y);
+                Console.Write("O");
+            }
+        }
         public void DrawFruit((int x, int y) fruitPos)
         { 
             Console.SetCursorPosition(fruitPos.x, fruitPos.y);
@@ -79,7 +89,6 @@ namespace SnakeASCII.GameLogic
             Console.SetCursorPosition(gameWindow.x / 2 - 9, gameWindow.y / 2);
             Console.Write("###### YOU LOSE ######");
             Console.ReadKey();
-            Console.Clear();
         }
     }
 }

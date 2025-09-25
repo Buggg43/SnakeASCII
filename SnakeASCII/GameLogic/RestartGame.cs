@@ -10,14 +10,15 @@ namespace SnakeASCII.GameLogic
 {
     public class RestartGame
     {
-        public void restart (ref int playerPoints, ref int movesForFruit, ref int sameDirectionCount, ref Direction lastDirestion, ref Snake snake, (int x, int y) snakeStartingPosition)
+        public void Restart (ref int playerPoints, ref int movesForFruit, ref int sameDirectionCount, ref Direction lastDirestion, ref Snake snake, (int x, int y) snakeStartingPosition, ref List<Fruit> fruits)
         {
             playerPoints = 0;
-            movesForFruit = 10;
-            sameDirectionCount = 0;
+            movesForFruit = 0;
+            sameDirectionCount = 1;
             lastDirestion = Direction.Right;
             snake.Segments.Clear();
             snake.Segments.Insert(0, snakeStartingPosition);
+            fruits.Clear();
         }
     }
 }

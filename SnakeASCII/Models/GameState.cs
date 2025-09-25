@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SnakeASCII.Models
 {
-    public enum Direction { Up, Down, Left, Right, Zero }
+    public enum Direction { Up, Down, Left, Right }
     public class GameState
     {
         public Direction LastDirection { get; set; }

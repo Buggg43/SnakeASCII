@@ -30,9 +30,11 @@ namespace SnakeASCII.Services
                 snakeServiceDto.Collision = true;
                 return snakeServiceDto;
             }
-            var ateFruit = fruits.Skip(1).Any(f => f.Positions == snakeServiceDto.NewHead);
-            var bodyToCheck = ateFruit ? snake.Segments : snake.Segments.Take(snake.Segments.Count - 1);
-            if (bodyToCheck.Skip(1).Any(s => s == snakeServiceDto.NewHead))
+            var ateFruit = fruits.Any(f => f.Positions == snakeServiceDto.NewHead);
+            var bodyToCheck = ateFruit ? snake.Segments
+                                       : snake.Segments.Take(snake.Segments.Count - 1);
+
+            if (bodyToCheck.Any(s => s == snakeServiceDto.NewHead))
             {
                 snakeServiceDto.Collision = true;
                 return snakeServiceDto;

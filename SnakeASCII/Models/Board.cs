@@ -8,8 +8,8 @@ namespace SnakeASCII.Models
 {
     public class Board
     {
-        public int GameWindowWidth { get; set; } = 90;
-        public int GameWindowHeight { get; set; } = 30;
+        public int GameWindowWidth { get; set; } = 80;
+        public int GameWindowHeight { get; set; } = 20;
 
     }
 }

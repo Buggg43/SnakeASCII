@@ -1,41 +1,82 @@
-﻿using SnakeASCII.GameLogic;
+﻿using SnakeASCII.DTOs;
+using SnakeASCII.GameLogic;
 using SnakeASCII.Models;
-using static SnakeASCII.GameLogic.GameEngine;
+using SnakeASCII.Services;
+using System.Xml.Linq;
 internal class Program
 {
     private static void Main()
     {
         Console.CursorVisible = false;
         Console.Clear();
-        var engine = new GameEngine();
 
-        (int windowWidth, int windowHeight) gameWindow = (80,20);
-        int movesForFruit = 10, playerPoints = 0;
-
+        Direction lastDirection = Direction.Right;
+        int sameDirectionCount = 0, movesForFruit = 10, playerPoints = 0, snakeSpeed;
+        SnakeServiceDto snakeMove;
+        Input input = new Input();
+        Board board = new Board();
+        Random rng = new Random();
+        SnakeService snakeService = new SnakeService();
+        FruitService fruitService = new FruitService();
+        Renderer renderer = new Renderer();
         Snake snake = new Snake();
-        snake.Segments.Insert(0,(gameWindow.windowWidth / 2, gameWindow.windowHeight / 2));
-        var head = snake.Segments[0];
-        var rng = new Random();
-        var fruits = new List<Fruit>();
-        Direction LastDirection = new Direction();
-        LastDirection = Direction.Zero;
-        int sameDirectionCount= 0;
+        var snakeStartingPosition = (board.GameWindowWidth / 2, board.GameWindowHeight / 2);
+        snake.Segments.Add(snakeStartingPosition);
+        List<Fruit> fruits = new List<Fruit>();
+        RestartGame restartGame = new RestartGame();
 
-        engine.DrawField(gameWindow);
-        engine.DrawSnake(snake,gameWindow);
+
+        renderer.DrawField((board.GameWindowWidth, board.GameWindowHeight));
+        renderer.UpdateGamePanel((board.GameWindowWidth, board.GameWindowHeight), playerPoints, snake.SnakeLength, movesForFruit, sameDirectionCount, snake.Segments[0]);
         while (true)
         {
-            engine.PlayerMove(snake, fruits, playerPoints, gameWindow,ref LastDirection,ref sameDirectionCount,ref movesForFruit);
-            engine.DrawFruits(snake,fruits, gameWindow,rng,ref movesForFruit);
-
-            var collectedFruits = fruits.Where(f => f.Positions == snake.Segments[0]).ToList();
-            foreach (var fruit in collectedFruits)
+            var current = lastDirection;
+            if(Console.KeyAvailable)
             {
-                snake.SnakeLength++;
-                fruits.Remove(fruit);
-                movesForFruit = 10;
+                var key = Console.ReadKey(true);
+                current = input.GetDirection(key, lastDirection);
             }
-            engine.SnakeSpeed(sameDirectionCount);
+            sameDirectionCount = (current == lastDirection) ? sameDirectionCount + 1 : 1;
+
+            snakeMove = snakeService.Move(fruits, snake, current, board);
+
+            if (snakeMove.Collision)
+            {
+                renderer.ShowGameOver((board.GameWindowWidth, board.GameWindowHeight));
+                Console.Clear();
+                renderer.DrawField((board.GameWindowWidth, board.GameWindowHeight));
+                restartGame.restart(ref playerPoints, ref movesForFruit, ref sameDirectionCount, ref lastDirection, ref snake, snakeStartingPosition);
+                renderer.DrawSnake(new SnakeServiceDto { NewHead = snakeStartingPosition });
+                fruits.Clear();
+                renderer.UpdateGamePanel((board.GameWindowWidth, board.GameWindowHeight), playerPoints, snake.SnakeLength, movesForFruit, sameDirectionCount, snake.Segments[0]);
+                continue;
+            }
+            else
+            {
+                if (snakeMove.AteFruitPosition.HasValue)
+                {
+                    fruitService.RemoveFruit(snakeMove.AteFruitPosition.Value, fruits);
+                    playerPoints += 10;
+                    movesForFruit = 10;
+                }
+                else if (fruits.Count < 1)
+                    movesForFruit--;
+            }
+            if (movesForFruit == 0 && fruits.Count < 1)
+            {
+                var f = fruitService.TrySpawnFruit(snake, fruits, rng, board);
+                if (f != null)
+                {
+                    fruits.Add(f);
+                    renderer.DrawFruit(f.Positions);
+                    movesForFruit = 10;
+                }
+            }
+            renderer.DrawSnake(snakeMove);
+            snakeSpeed = snakeService.SnakeSpeed(sameDirectionCount);
+            renderer.UpdateGamePanel((board.GameWindowWidth, board.GameWindowHeight), playerPoints, snake.SnakeLength, movesForFruit, sameDirectionCount, snake.Segments[0]);
+            lastDirection = current;
+            Thread.Sleep(snakeSpeed);
         }
     }
 }

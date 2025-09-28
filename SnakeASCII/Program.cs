@@ -14,7 +14,13 @@ internal class Program
         int sameDirectionCount = 0, movesForFruit = 0, playerPoints = 0, snakeSpeed;
         SnakeServiceDto snakeMove;
         Input input = new Input();
-        Board board = new Board();
+        Board board = new Board()
+        {
+            GameWindowWidth = Console.WindowWidth - 1,
+            GameWindowHeight = Console.WindowHeight - 8
+        };
+        Console.BufferWidth = Console.WindowWidth;
+        Console.BufferHeight = Console.WindowHeight;
         Random rng = new Random();
         SnakeService snakeService = new SnakeService();
         FruitService fruitService = new FruitService();
@@ -31,6 +37,22 @@ internal class Program
         renderer.DrawSnakeFull(snake);
         while (true)
         {
+            if(Console.WindowHeight != board.GameWindowHeight + 8 || Console.WindowWidth != board.GameWindowWidth + 1 )
+            {
+                Console.Clear();
+                var winW = Console.BufferWidth = Console.WindowWidth;
+                var winH = Console.BufferHeight = Console.WindowHeight;
+                board.GameWindowWidth = winW - 1;
+                board.GameWindowHeight = winH - 8;
+
+                snakeStartingPosition = (board.GameWindowWidth / 2, board.GameWindowHeight / 2);
+                renderer.DrawField((board.GameWindowWidth, board.GameWindowHeight));
+                renderer.UpdateGamePanel((board.GameWindowWidth, board.GameWindowHeight), playerPoints, snake.SnakeLength, movesForFruit, sameDirectionCount, snake.Segments[0]);
+                renderer.DrawSnakeFull(snake);
+
+                foreach (var f in fruits)
+                    renderer.DrawFruit(f.Positions);
+            }
             var current = lastDirection;
             if(Console.KeyAvailable)
             {

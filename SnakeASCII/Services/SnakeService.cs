@@ -30,25 +30,29 @@ namespace SnakeASCII.Services
                 snakeServiceDto.Collision = true;
                 return snakeServiceDto;
             }
-            var ateFruit = fruits.Any(f => f.Positions == snakeServiceDto.NewHead);
-            var bodyToCheck = ateFruit ? snake.Segments
-                                       : snake.Segments.Take(snake.Segments.Count - 1);
+            var ateFruit = fruits.Any(f => f.Positions == snakeServiceDto.NewHead); 
+            bool keepTailThisTurn = ateFruit || snake.PendingGrowth > 0;
+            var bodyToCheck = keepTailThisTurn ? snake.Segments
+                                   : snake.Segments.Take(snake.Segments.Count - 1);
 
             if (bodyToCheck.Any(s => s == snakeServiceDto.NewHead))
             {
                 snakeServiceDto.Collision = true;
                 return snakeServiceDto;
             }
-            if (!ateFruit)
+            if (!keepTailThisTurn)
             {
-                snakeServiceDto.OldTail = snake.Segments.Last();
-                snake.Segments.Remove(snake.Segments.Last());
+                snakeServiceDto.OldTail = snake.Segments[^1];
+                snake.Segments.RemoveAt(snake.Segments.Count - 1);
             }
             else
             {
-                snake.SnakeLength = snake.Segments.Count;
-                snakeServiceDto.AteFruitPosition = snakeServiceDto.NewHead;
+                if (!ateFruit && snake.PendingGrowth > 0)
+                    snake.PendingGrowth--;
             }
+            if (ateFruit)
+                snakeServiceDto.AteFruitPosition = snakeServiceDto.NewHead;
+
             snake.Segments.Insert(0, snakeServiceDto.NewHead);
             return snakeServiceDto;
         }

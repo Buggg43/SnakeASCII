@@ -32,5 +32,9 @@ namespace SnakeASCII.Services
                 fruits.Remove(fruitToRemove);
             }
         }
+        public void ResetAfterResize(List<Fruit> fruits)
+        {
+            fruits.Clear();
+        }
     }
 }

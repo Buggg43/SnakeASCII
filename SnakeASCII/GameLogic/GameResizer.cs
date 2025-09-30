@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,19 +10,27 @@ namespace SnakeASCII.GameLogic
 {
     public class GameResizer
     {
-        public Board ResizeBoard(Board board)
-        {             
-            int minWidth = 20;
-            int minHeight = 10;
-            int maxWidth = 100;
-            int maxHeight = 40;
-            int newWidth = Math.Clamp(board.GameWindowWidth, minWidth, maxWidth);
-            int newHeight = Math.Clamp(board.GameWindowHeight, minHeight, maxHeight);
-            return new Board
+        public bool ResizeBoard(Board board)
+        {
+            bool boardResized = false;
+            int winW = Console.WindowWidth;
+            int winH = Console.WindowHeight;
+
+            int effectiveMaxW = Math.Max(board.MinWidth, Console.LargestWindowWidth - board.MarginX);
+            int effectiveMaxH = Math.Max(board.MinHeight, Console.LargestWindowHeight - board.MarginY);
+            Console.BufferWidth = winW;
+            Console.BufferHeight = winH;
+            int newWidth = Math.Clamp(winW - board.MarginX, board.MinWidth, effectiveMaxW);
+            int newHeight = Math.Clamp(winH - board.MarginY, board.MinHeight, effectiveMaxH);
+
+            // User can resize mutliple times, so only update if there's a change
+            if (newWidth != board.GameWindowWidth || newHeight != board.GameWindowHeight)
             {
-                GameWindowWidth = newWidth,
-                GameWindowHeight = newHeight
-            };
+                board.GameWindowWidth = newWidth;
+                board.GameWindowHeight = newHeight;
+                boardResized = true;
+            }
+            return boardResized;
         }
     }
 }

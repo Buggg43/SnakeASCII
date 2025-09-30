@@ -14,7 +14,6 @@ namespace SnakeASCII.DTOs
         public Direction NewDirection { get; set; }
         public List<(int x, int y)> NewSnakeSegments { get; set; }
         public int PendingGrowth { get; set; }
-        public bool ClearFruits { get; set; }
-        public bool PortalState { get; set; 
+        public bool ClearFruits { get; set; } 
     }
 }
